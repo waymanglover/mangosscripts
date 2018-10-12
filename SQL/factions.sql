@@ -94,7 +94,8 @@ set FactionAlliance = 14, FactionHorde = 14
 where Entry in (
                 3128, 
                 3129,
-                12856
+                12856,
+                12676
                 );
 
 -- Let players complete quests from either faction
