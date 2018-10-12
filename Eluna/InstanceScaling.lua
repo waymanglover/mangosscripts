@@ -68,7 +68,7 @@ local function AdjustHealth(creature)
     PrintDebug("Enter AdjustHealth")
     local map = creature:GetMap()
     local mapId = map:GetMapId()
-    local playerCount = map:GetPlayerCount()
+    local playerCount = map:GetPlayerCount() or 0
     local origMaxHealth = creature:GetData("OrigMaxHealth")
     if not origMaxHealth then
         origMaxHealth = creature:GetMaxHealth()
@@ -96,7 +96,7 @@ local function AdjustDamage(creature)
     local debuff = 17650 -- 20% damage decrease
     local map = creature:GetMap()
     local mapId = map:GetMapId()
-    local playerCount = map:GetPlayerCount()
+    local playerCount = map:GetPlayerCount() or 0
     local stacksToApply = math.floor(math.abs((instanceExpectedPlayersTable[mapId] - playerCount) / perMissingApplyStack))
     if stacksToApply <= 0 then
         PrintDebug("stacksToApply: " .. stacksToApply)
@@ -152,13 +152,15 @@ end
 local function OnAdd(event, creature)
     PrintDebug("Enter OnAdd")
     local map = creature:GetMap()
-    local mapId = map:GetMapId()
-    local instanceId = map:GetInstanceId()
-    local creatures = map:GetData("Creatures") or {}
-    -- Using creatures table as a set. True value just means it exists (not nil)
-    creatures[creature:GetGUID()] = true
-    map:SetData("Creatures", creatures)
-    AdjustCreature(creature)
+    if instanceExpectedPlayersTable[map:GetMapId()] then
+        local mapId = map:GetMapId()
+        local instanceId = map:GetInstanceId()
+        local creatures = map:GetData("Creatures") or {}
+        -- Using creatures table as a set. True value just means it exists (not nil)
+        creatures[creature:GetGUID()] = true
+        map:SetData("Creatures", creatures)
+        AdjustCreature(creature)
+    end
     PrintDebug("Exit OnAdd")
 end
 
