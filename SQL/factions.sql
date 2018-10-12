@@ -22,6 +22,11 @@ where FactionHorde in (
                         57, -- Ironforge 
                         1618, -- Ironforge 
                         122, -- Ironforge 
+                        894, -- Theramore
+                        1096, -- Theramore
+                        694, -- Wildhammer Clan
+                        96, -- Southshore Mayor
+                        84, -- Alliance Generic
                         1154, -- Undercity 
                         68, -- Undercity 
                         71, -- Undercity 
@@ -42,7 +47,8 @@ where FactionHorde in (
                         1619, -- Orgrimmar 
                         85, -- Orgrimmar 
                         125, -- Orgrimmar 
-                        1074 -- Orgrimmar 
+                        1074, -- Orgrimmar
+                        83 -- Horde Generic
                       )
 or FactionAlliance in ( 
                         11, -- Stormwind 
@@ -65,6 +71,11 @@ or FactionAlliance in (
                         57, -- Ironforge 
                         1618, -- Ironforge 
                         122, -- Ironforge 
+                        894, -- Theramore
+                        1096, -- Theramore
+                        694, -- Wildhammer Clan
+                        96, -- Southshore Mayor
+                        84, -- Alliance Generic
                         1154, -- Undercity 
                         68, -- Undercity 
                         71, -- Undercity 
@@ -85,7 +96,8 @@ or FactionAlliance in (
                         1619, -- Orgrimmar 
                         85, -- Orgrimmar 
                         125, -- Orgrimmar 
-                        1074 -- Orgrimmar 
+                        1074, -- Orgrimmar
+                        83 -- Horde Generic
                       );
                       
 -- Set the faction NPC's that have to be killed for quests to be hostile
@@ -96,7 +108,10 @@ where Entry in (
                 3129,
                 12856,
                 12676
-                );
+                )
+or FactionAlliance in (
+    88 -- Hillsbrad Militia
+);
 
 -- Let players complete quests from either faction
 update mangos0.quest_template
