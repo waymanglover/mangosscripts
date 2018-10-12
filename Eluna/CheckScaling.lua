@@ -4,6 +4,10 @@ local function OnChat(event, player, msg, Type, lang)
     if (msg == "_scaling") then
         local scaled = false
         local target = player:GetSelection()
+        if not target then
+            player:Say("No target", 0)
+            return
+        end
         local currentMaxHealth = target:GetMaxHealth()
         local origMaxHealth = target:GetData("OrigMaxHealth") or currentMaxHealth
         if origMaxHealth ~= currentMaxHealth then

@@ -1,7 +1,8 @@
 require("Constants")
+require("Scaling")
 
 -- TODO: Confirm these esp. BRD/Strat/Scholo
-local instanceExpectedPlayersTable = {
+local instanceExpectedPlayerCountTable = {
     [RaidMaps.ONYXIAS_LAIR] = 40,
     [RaidMaps.NAXXRAMAS] = 40,
     [RaidMaps.AHNQIRAJ_TEMPLE] = 40,
@@ -31,155 +32,56 @@ local instanceExpectedPlayersTable = {
     [DungeonMaps.ZULFARRAK] = 5,
 }
 
-function TableToString(table, indent)
-    if not table then return "Nil" end
-    if not indent then indent = 0 end
-    local string = string.rep(" ", indent) .. "{\r\n"
-    indent = indent + 2 
-    for k, v in pairs(table) do
-      string = string .. string.rep(" ", indent)
-      if (type(k) == "number") then
-        string = string .. "[" .. k .. "] = "
-      elseif (type(k) == "string") then
-        string = string  .. k ..  "= "  
-      else 
-        -- Assume guid / uint64
-        string = string .. "[" .. GetGUIDLow(k) .. "] = "
-      end
-      if (type(v) == "number") then
-        string = string .. v .. ",\r\n"
-      elseif (type(v) == "string") then
-        string = string .. "\"" .. v .. "\",\r\n"
-      elseif (type(v) == "table") then
-        string = string .. TableToString(v, indent + 2) .. ",\r\n"
-      else
-        string = string .. "\"" .. tostring(v) .. "\",\r\n"
-      end
-    end
-    string = string .. string.rep(" ", indent-2) .. "}"
-    return string
-end
-
-function DumpTable(table)
-    PrintDebug(TableToString(table))
-end
-
-local function AdjustHealth(creature)
-    local map = creature:GetMap()
-    local mapId = map:GetMapId()
-    local playerCount = map:GetPlayerCount() or 0
-    local origMaxHealth = creature:GetData("OrigMaxHealth")
-    if not origMaxHealth then
-        origMaxHealth = creature:GetMaxHealth()
-        creature:SetData("OrigMaxHealth", origMaxHealth)
-    else        
-        PrintDebug("Got OrigMaxHealth for " .. creature:GetName() .. " from creature data: " ..  origMaxHealth)
-    end
-    local newMaxHealth = math.max(math.ceil(origMaxHealth * (playerCount / instanceExpectedPlayersTable[mapId])), 100)
-    if (newMaxHealth ~= creature:GetMaxHealth()) then 
-        creature:SetMaxHealth(newMaxHealth) 
-        PrintDebug("Adjusted " .. creature:GetName() .. " from " ..  origMaxHealth .. " to " .. newMaxHealth)
-    end
-end
-
-local function AdjustDamage(creature)
-    -- Apply a stack of the buff/debuff for each perMissingApplyStack players 
-    -- we are below the expected player count.
-    -- Ex: Instance expects 10 players, but there's 5 players in the instance
-    --     If perMissingApplyStack = 2 -> (10 - 5) / 2 = 2.5, round down to 2
-    local perMissingApplyStack = 2
-
-    local buff = 28419 -- 20% damage increase and increased size (hope this doesn't break things!)
-    local debuff = 17650 -- 20% damage decrease
-    local map = creature:GetMap()
-    local mapId = map:GetMapId()
-    local playerCount = map:GetPlayerCount() or 0
-    local stacksToApply = math.floor(math.abs((instanceExpectedPlayersTable[mapId] - playerCount) / perMissingApplyStack))
-    if stacksToApply <= 0 then
-        PrintDebug("Removing/skipping scaling. stacksToApply: " .. stacksToApply)
-        creature:RemoveAura(buff)
-        creature:RemoveAura(debuff)
-        return 
-    end
-    local auraToApply
-    if playerCount <= instanceExpectedPlayersTable[mapId] then
-        auraToApply = debuff
-        creature:RemoveAura(buff)
-    else
-        auraToApply = buff
-        creature:RemoveAura(debuff)
-    end
-    PrintDebug("Applying " .. stacksToApply .. " stacks of aura " .. auraToApply .. " to " .. creature:GetName())
-    creature:AddAura(auraToApply, creature)
-    local aura = creature:GetAura(auraToApply)
-    if not aura then 
-        PrintError("Failed to apply aura " .. auraToApply .. " for " .. creature:GetName() .. " GUID: " .. creature:GetGUIDLow())
-        return
-    end
-    aura:SetDuration(-1) -- Forever
-    if stacksToApply > 1 then aura:SetStackAmount(stacksToApply) end
-end
-
--- This almost certainly won't handle everything right
--- ...but it should cover the vast majority.
-local function AdjustCreature(creature)
-    AdjustHealth(creature)
-    AdjustDamage(creature)
-end
-
-local function AdjustMap(map)
-    local mapId = map:GetMapId()
-    local instanceId = map:GetInstanceId()
-    local creatures = map:GetData("Creatures")
-    if not creatures then 
-        PrintDebug("No creatures set for map " .. mapId .. " instance " .. instanceId)
-        return 
-    end
-    for guid,_ in pairs(creatures) do
-        local creature = map:GetWorldObject(guid)
-        if creature ~= nil then
-            AdjustCreature(creature)
-        end
-    end
-end
-
 local function OnAdd(event, creature)
     local map = creature:GetMap()
-    if instanceExpectedPlayersTable[map:GetMapId()] then
-        local mapId = map:GetMapId()
-        local instanceId = map:GetInstanceId()
+    local mapId = map:GetMapId()
+    if instanceExpectedPlayerCountTable[mapId] then
         local creatures = map:GetData("Creatures") or {}
         -- Using creatures table as a set. True value just means it exists (not nil)
         creatures[creature:GetGUID()] = true
         map:SetData("Creatures", creatures)
-        AdjustCreature(creature)
+        local playerCount = map:GetPlayerCount() or 0
+        AdjustCreature(creature, instanceExpectedPlayerCountTable[mapId], playerCount)
     end
 end
 
 local function OnPlayerEnterLeave(event, map, player)
-    if instanceExpectedPlayersTable[map:GetMapId()] then
-        AdjustMap(map)
+    local mapId = map:GetMapId()
+    if instanceExpectedPlayerCountTable[mapId] then
+        local playerCount = map:GetPlayerCount() or 0
+        AdjustMap(map, instanceExpectedPlayerCountTable[mapId], playerCount)
     end
 end
 
-local dungeons
+local function OnEnterCombat(event, creature, target)
+    local map = creature:GetMap()
+    local mapId = map:GetMapId()
+    if instanceExpectedPlayerCountTable[mapId] then
+        PrintDebug("Creature entered combat! " .. creature:GetName())
+        local playerCount = map:GetPlayerCount() or 0
+        AdjustCreature(creature, instanceExpectedPlayerCountTable[mapId], playerCount)
+    end
+end
+
+local instances
 local first = true
-for dungeonId, _ in pairs(instanceExpectedPlayersTable) do
+for mapId, _ in pairs(instanceExpectedPlayerCountTable) do
     if first then 
-        dungeons = dungeonId
+        instances = mapId
         first = false
     else
-        dungeons = dungeonId .. ", " .. dungeons
+        instances = mapId .. ", " .. instances
     end
 end
 
-local query = "SELECT DISTINCT id FROM creature WHERE map IN (" .. dungeons .. ")"
+local query = "SELECT DISTINCT id FROM creature WHERE map IN (" .. instances .. ")"
 PrintDebug("Instance creature query: " .. query)
 local Q = WorldDBQuery(query)
 if Q then
     repeat
         local id = Q:GetUInt32(0)
         RegisterCreatureEvent(id, CreatureEvents.CREATURE_EVENT_ON_ADD, OnAdd);
+        RegisterCreatureEvent(id, CreatureEvents.CREATURE_EVENT_ON_ENTER_COMBAT, OnEnterCombat);
         PrintDebug("Registered creature ID " .. id)
     until not Q:NextRow()
 else
