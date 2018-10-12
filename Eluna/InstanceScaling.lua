@@ -65,7 +65,6 @@ function DumpTable(table)
 end
 
 local function AdjustHealth(creature)
-    PrintDebug("Enter AdjustHealth")
     local map = creature:GetMap()
     local mapId = map:GetMapId()
     local playerCount = map:GetPlayerCount() or 0
@@ -81,11 +80,9 @@ local function AdjustHealth(creature)
         creature:SetMaxHealth(newMaxHealth) 
         PrintDebug("Adjusted " .. creature:GetName() .. " from " ..  origMaxHealth .. " to " .. newMaxHealth)
     end
-    PrintDebug("Exit AdjustHealth")
 end
 
 local function AdjustDamage(creature)
-    PrintDebug("Enter AdjustDamage")
     -- Apply a stack of the buff/debuff for each perMissingApplyStack players 
     -- we are below the expected player count.
     -- Ex: Instance expects 10 players, but there's 5 players in the instance
@@ -99,10 +96,9 @@ local function AdjustDamage(creature)
     local playerCount = map:GetPlayerCount() or 0
     local stacksToApply = math.floor(math.abs((instanceExpectedPlayersTable[mapId] - playerCount) / perMissingApplyStack))
     if stacksToApply <= 0 then
-        PrintDebug("stacksToApply: " .. stacksToApply)
+        PrintDebug("Removing/skipping scaling. stacksToApply: " .. stacksToApply)
         creature:RemoveAura(buff)
         creature:RemoveAura(debuff)
-        PrintDebug("Exit AdjustDamage")
         return 
     end
     local auraToApply
@@ -114,30 +110,29 @@ local function AdjustDamage(creature)
         creature:RemoveAura(debuff)
     end
     PrintDebug("Applying " .. stacksToApply .. " stacks of aura " .. auraToApply .. " to " .. creature:GetName())
-    local applied = creature:AddAura(auraToApply, creature)
+    creature:AddAura(auraToApply, creature)
     local aura = creature:GetAura(auraToApply)
+    if not aura then 
+        PrintError("Failed to apply aura " .. auraToApply .. " for " .. creature:GetName() .. " GUID: " .. creature:GetGUIDLow())
+        return
+    end
     aura:SetDuration(-1) -- Forever
     if stacksToApply > 1 then aura:SetStackAmount(stacksToApply) end
-    PrintDebug("Exit AdjustDamage")
 end
 
 -- This almost certainly won't handle everything right
 -- ...but it should cover the vast majority.
 local function AdjustCreature(creature)
-    PrintDebug("Enter AdjustCreature")
     AdjustHealth(creature)
     AdjustDamage(creature)
-    PrintDebug("Exit AdjustCreature")
 end
 
 local function AdjustMap(map)
-    PrintDebug("Enter AdjustMap")
     local mapId = map:GetMapId()
     local instanceId = map:GetInstanceId()
     local creatures = map:GetData("Creatures")
     if not creatures then 
         PrintDebug("No creatures set for map " .. mapId .. " instance " .. instanceId)
-        PrintDebug("Exit AdjustMap")
         return 
     end
     for guid,_ in pairs(creatures) do
@@ -146,11 +141,9 @@ local function AdjustMap(map)
             AdjustCreature(creature)
         end
     end
-    PrintDebug("Exit AdjustMap")
 end
 
 local function OnAdd(event, creature)
-    PrintDebug("Enter OnAdd")
     local map = creature:GetMap()
     if instanceExpectedPlayersTable[map:GetMapId()] then
         local mapId = map:GetMapId()
@@ -161,15 +154,12 @@ local function OnAdd(event, creature)
         map:SetData("Creatures", creatures)
         AdjustCreature(creature)
     end
-    PrintDebug("Exit OnAdd")
 end
 
 local function OnPlayerEnterLeave(event, map, player)
-    PrintDebug("Enter OnPlayerEnterLeave")
     if instanceExpectedPlayersTable[map:GetMapId()] then
         AdjustMap(map)
     end
-    PrintDebug("Exit OnPlayerEnterLeave")
 end
 
 local dungeons
@@ -184,13 +174,13 @@ for dungeonId, _ in pairs(instanceExpectedPlayersTable) do
 end
 
 local query = "SELECT DISTINCT id FROM creature WHERE map IN (" .. dungeons .. ")"
-PrintDebug(query)
+PrintDebug("Instance creature query: " .. query)
 local Q = WorldDBQuery(query)
 if Q then
     repeat
         local id = Q:GetUInt32(0)
         RegisterCreatureEvent(id, CreatureEvents.CREATURE_EVENT_ON_ADD, OnAdd);
-        PrintDebug("Registered creature id " .. id)
+        PrintDebug("Registered creature ID " .. id)
     until not Q:NextRow()
 else
     PrintDebug("No creatures :(")
