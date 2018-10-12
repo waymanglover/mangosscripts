@@ -1,6 +1,6 @@
 require("Constants")
 
--- TODO: Confirm these esp. 10m
+-- TODO: Confirm these esp. BRD/Strat/Scholo
 local instanceExpectedPlayersTable = {
     [RaidMaps.ONYXIAS_LAIR] = 40,
     [RaidMaps.NAXXRAMAS] = 40,
@@ -80,7 +80,6 @@ local function AdjustHealth(creature)
     if (newMaxHealth ~= creature:GetMaxHealth()) then 
         creature:SetMaxHealth(newMaxHealth) 
         PrintDebug("Adjusted " .. creature:GetName() .. " from " ..  origMaxHealth .. " to " .. newMaxHealth)
-        --creature:SendUnitSay("Orig: " .. origMaxHealth .. " New: " .. newMaxHealth, 0)
     end
     PrintDebug("Exit AdjustHealth")
 end
@@ -92,24 +91,30 @@ local function AdjustDamage(creature)
     -- Ex: Instance expects 10 players, but there's 5 players in the instance
     --     If perMissingApplyStack = 2 -> (10 - 5) / 2 = 2.5, round down to 2
     local perMissingApplyStack = 2
+
+    local buff = 28419 -- 20% damage increase and increased size (hope this doesn't break things!)
+    local debuff = 17650 -- 20% damage decrease
     local map = creature:GetMap()
     local mapId = map:GetMapId()
     local playerCount = map:GetPlayerCount()
     local stacksToApply = math.floor(math.abs((instanceExpectedPlayersTable[mapId] - playerCount) / perMissingApplyStack))
     if stacksToApply <= 0 then
         PrintDebug("stacksToApply: " .. stacksToApply)
+        creature:RemoveAura(buff)
+        creature:RemoveAura(debuff)
         PrintDebug("Exit AdjustDamage")
         return 
     end
     local auraToApply
     if playerCount <= instanceExpectedPlayersTable[mapId] then
-        auraToApply = 17650 -- 20% damage decrease
+        auraToApply = debuff
+        creature:RemoveAura(buff)
     else
-        auraToApply = 28419 -- 20% damage increase and increased size (hope this doesn't break things!)
+        auraToApply = buff
+        creature:RemoveAura(debuff)
     end
-    PrintError("Applying " .. stacksToApply .. " stacks of aura " .. auraToApply .. " to " .. creature:GetName())
+    PrintDebug("Applying " .. stacksToApply .. " stacks of aura " .. auraToApply .. " to " .. creature:GetName())
     local applied = creature:AddAura(auraToApply, creature)
-    PrintError(applied)
     local aura = creature:GetAura(auraToApply)
     aura:SetDuration(-1) -- Forever
     if stacksToApply > 1 then aura:SetStackAmount(stacksToApply) end
@@ -130,7 +135,6 @@ local function AdjustMap(map)
     local mapId = map:GetMapId()
     local instanceId = map:GetInstanceId()
     local creatures = map:GetData("Creatures")
-    DumpTable(creatures)
     if not creatures then 
         PrintDebug("No creatures set for map " .. mapId .. " instance " .. instanceId)
         PrintDebug("Exit AdjustMap")
@@ -142,7 +146,6 @@ local function AdjustMap(map)
             AdjustCreature(creature)
         end
     end
-    DumpTable(creatures)
     PrintDebug("Exit AdjustMap")
 end
 
@@ -192,3 +195,4 @@ else
 end
 
 RegisterServerEvent(ServerEvents.MAP_EVENT_ON_PLAYER_ENTER, OnPlayerEnterLeave)
+RegisterServerEvent(ServerEvents.MAP_EVENT_ON_PLAYER_LEAVE, OnPlayerEnterLeave)
