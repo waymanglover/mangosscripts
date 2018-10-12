@@ -1,3 +1,4 @@
+-- Set NPCs assigned to a player faction to be friendly to both factions
 update mangos0.creature_template
 set FactionHorde = 35, FactionAlliance = 35 -- Friendly
 where FactionHorde in ( 
@@ -86,10 +87,23 @@ or FactionAlliance in (
                         125, -- Orgrimmar 
                         1074 -- Orgrimmar 
                       );
+                      
+-- Set the faction NPC's that have to be killed for quests to be hostile
+update mangos0.creature_template 
+set FactionAlliance = 14, FactionHorde = 14
+where Entry in (
+                3128, 
+                3129,
+                12856
+                );
 
+-- Let players complete quests from either faction
 update mangos0.quest_template
 set RequiredRaces = 0
 where RequiredRaces in (
                         77, -- Alliance
                         178 -- Horde
                        );
+                       
+-- Let players use graveyards from either faction
+update mangos0.game_graveyard_zone set faction = 0;
