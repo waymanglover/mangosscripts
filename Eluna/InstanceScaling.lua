@@ -64,15 +64,11 @@ function DumpTable(table)
     PrintDebug(TableToString(table))
 end
 
--- This almost certainly won't handle everything right
--- ...but it should cover the vast majority.
-local function AdjustCreature(creature)
-    PrintDebug("Enter AdjustCreature")
+local function AdjustHealth(creature)
+    PrintDebug("Enter AdjustHealth")
     local map = creature:GetMap()
     local mapId = map:GetMapId()
-    local instanceId = map:GetInstanceId()
     local playerCount = map:GetPlayerCount()
- 
     local origMaxHealth = creature:GetData("OrigMaxHealth")
     if not origMaxHealth then
         origMaxHealth = creature:GetMaxHealth()
@@ -86,7 +82,46 @@ local function AdjustCreature(creature)
         PrintDebug("Adjusted " .. creature:GetName() .. " from " ..  origMaxHealth .. " to " .. newMaxHealth)
         --creature:SendUnitSay("Orig: " .. origMaxHealth .. " New: " .. newMaxHealth, 0)
     end
+    PrintDebug("Exit AdjustHealth")
+end
 
+local function AdjustDamage(creature)
+    PrintDebug("Enter AdjustDamage")
+    -- Apply a stack of the buff/debuff for each perMissingApplyStack players 
+    -- we are below the expected player count.
+    -- Ex: Instance expects 10 players, but there's 5 players in the instance
+    --     If perMissingApplyStack = 2 -> (10 - 5) / 2 = 2.5, round down to 2
+    local perMissingApplyStack = 2
+    local map = creature:GetMap()
+    local mapId = map:GetMapId()
+    local playerCount = map:GetPlayerCount()
+    local stacksToApply = math.floor(math.abs((instanceExpectedPlayersTable[mapId] - playerCount) / perMissingApplyStack))
+    if stacksToApply <= 0 then
+        PrintDebug("stacksToApply: " .. stacksToApply)
+        PrintDebug("Exit AdjustDamage")
+        return 
+    end
+    local auraToApply
+    if playerCount <= instanceExpectedPlayersTable[mapId] then
+        auraToApply = 17650 -- 20% damage decrease
+    else
+        auraToApply = 28419 -- 20% damage increase and increased size (hope this doesn't break things!)
+    end
+    PrintError("Applying " .. stacksToApply .. " stacks of aura " .. auraToApply .. " to " .. creature:GetName())
+    local applied = creature:AddAura(auraToApply, creature)
+    PrintError(applied)
+    local aura = creature:GetAura(auraToApply)
+    aura:SetDuration(-1) -- Forever
+    if stacksToApply > 1 then aura:SetStackAmount(stacksToApply) end
+    PrintDebug("Exit AdjustDamage")
+end
+
+-- This almost certainly won't handle everything right
+-- ...but it should cover the vast majority.
+local function AdjustCreature(creature)
+    PrintDebug("Enter AdjustCreature")
+    AdjustHealth(creature)
+    AdjustDamage(creature)
     PrintDebug("Exit AdjustCreature")
 end
 
