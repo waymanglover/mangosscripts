@@ -38,18 +38,43 @@ local expectedPlayers = 5
 local function OnEnterCombat(event, creature, target)
     local map = creature:GetMap()
     local mapId = map:GetMapId()
-    if mapId == WorldMaps.EASTERN_KINGDOMS or mapId == WorldMaps.KALIMDOR then
-        PrintDebug("Creature entered combat! " .. creature:GetName())
-        local playerCount
-        local group = target:GetGroup()
-        if group then
-            playerCount = group:GetMembersCount()
-        else
+    if mapId ~= WorldMaps.EASTERN_KINGDOMS and mapId ~= WorldMaps.KALIMDOR then
+        return
+    end
+
+    -- If the target is a pet, get the pet's owner instead
+    local owner = target:GetOwner()
+    if owner then 
+        target = owner 
+    end
+
+    -- If the unit's not a player...
+    if target:GetTypeId() ~= 4 then -- TODO: Add to constants
+        PrintDebug(creature:GetName() .. " entered combat but target is not a player")
+        return
+    end
+
+    PrintDebug(creature:GetName() .. " entered combat!")
+    local playerCount = 0
+    local group = target:GetGroup()
+    if group then
+        local members = group:GetMembers()
+        if members then
+            local creatureZone = creature:GetZoneId()
+            for _, player in ipairs(members) do
+                if player:GetZoneId() == creatureZone then 
+                    playerCount = playerCount + 1 
+                end
+            end
+        else 
+            PrintDebug("Nil group when scaling " .. creature:GetName() .. " for " .. target:GetName())
             playerCount = 1
         end
-        PrintDebug("Player count based on " .. creature:GetName() .. " target's group: " .. playerCount)
-        AdjustCreature(creature, expectedPlayers, playerCount)
+    else
+        playerCount = 1
     end
+    PrintDebug("Player count based on " .. creature:GetName() .. " target's group: " .. playerCount)
+    AdjustCreature(creature, expectedPlayers, playerCount)
 end
 
 local blacklistedFactions
