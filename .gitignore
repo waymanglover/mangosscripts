@@ -334,3 +334,6 @@ ASALocalRun/
 
 # WDBX.Editor
 WDBX.Editor/
+
+# VSCode Workspaces
+*.code-workspace
