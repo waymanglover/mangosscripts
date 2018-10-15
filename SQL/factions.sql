@@ -107,7 +107,9 @@ where Entry in (
                 3128, 
                 3129,
                 12856,
-                12676
+                12676, -- Sharptalon
+                12677, -- Shadumbra
+                12678, -- Ursangous
                 )
 or FactionAlliance in (
     88 -- Hillsbrad Militia
