@@ -2,21 +2,26 @@ INSERT INTO mangos0.creature_template (`Entry`, `Name`, `SubName`, `MinLevel`, `
 VALUES (69100,	'Green Hillbilly',	'Great Again',	30,	30,	3277,	0,	0,	0,	35,	35,	0,	0,	7,	3,	1,	0,	16388,	4608,	0,	2,	0,	1,	1.14286,	1,	0,	1.80031,	0,	1,	1,	1,	1,	1172,	1172,	0,	0,	30,	39,	37.3824,	51.4008,	975,	16,	100,	1500,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	8,	1,	'EventAI');
 
 -- change price of green hills pages to 50s instead of 15s
-UPDATE mangos0.item_template SET BuyPrice = '5000' WHERE (entry = '2725');
-UPDATE mangos0.item_template SET BuyPrice = '5000' WHERE (entry = '2728');
-UPDATE mangos0.item_template SET BuyPrice = '5000' WHERE (entry = '2730');
-UPDATE mangos0.item_template SET BuyPrice = '5000' WHERE (entry = '2732');
-UPDATE mangos0.item_template SET BuyPrice = '5000' WHERE (entry = '2734');
-UPDATE mangos0.item_template SET BuyPrice = '5000' WHERE (entry = '2735');
-UPDATE mangos0.item_template SET BuyPrice = '5000' WHERE (entry = '2738');
-UPDATE mangos0.item_template SET BuyPrice = '5000' WHERE (entry = '2740');
-UPDATE mangos0.item_template SET BuyPrice = '5000' WHERE (entry = '2742');
-UPDATE mangos0.item_template SET BuyPrice = '5000' WHERE (entry = '2744');
-UPDATE mangos0.item_template SET BuyPrice = '5000' WHERE (entry = '2745');
-UPDATE mangos0.item_template SET BuyPrice = '5000' WHERE (entry = '2748');
-UPDATE mangos0.item_template SET BuyPrice = '5000' WHERE (entry = '2749');
-UPDATE mangos0.item_template SET BuyPrice = '5000' WHERE (entry = '2750');
-UPDATE mangos0.item_template SET BuyPrice = '5000' WHERE (entry = '2751');
+UPDATE mangos0.item_template
+SET BuyPrice = 5000
+WHERE Entry in (
+                2725,
+                2728,
+                2730,
+                2732,
+                2734,
+                2735,
+                2738,
+                2740,
+                2742,
+                2744,
+                2745,
+                2748,
+                2749,
+                2750,
+                2751
+                );
+
 
 INSERT INTO mangos0.npc_vendor (`entry`, `item`, `maxcount`, `incrtime`, `condition_id`) 
 VALUES
