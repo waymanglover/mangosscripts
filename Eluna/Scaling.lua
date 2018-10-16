@@ -1,9 +1,11 @@
 -- Apply a stack of the buff/debuff depending on the percentage of players 
 -- we are below the expected player count.
 -- Ex: Instance expects 10 players, but there's 6 players in the instance
---     If perMissingApplyStack = 0.25 -> (1 - 6/10) / 0.25
---                                      (0.6) / 0.25 = 2.4 (rounded down to 2)
-local perMissingApplyStack = 0.25
+--     If perMissingApplyStack = 0.267 -> (1 - 6/10) / 0.267
+--                                        (0.4) / 0.267 = 1.498 (rounded down to 2)
+-- 0.267 means instances expecting 5 people would cap at 2 stacks, but
+-- allows for an extra stack if a small group runs a 10/20/40-man dungeon/raid.
+local perMissingApplyStack = 0.267
 local buff = 28419 -- 20% damage increase and increased size (hope this doesn't break things!)
 local debuff = 17650 -- 20% damage decrease
 
@@ -27,7 +29,7 @@ end
 local function AdjustDamage(creature, expectedPlayerCount, playerCount)
     local map = creature:GetMap()
     local mapId = map:GetMapId()
-    local stacksToApply = math.floor((1 - playerCount/expectedPlayerCount) / perMissingApplyStack)
+    local stacksToApply = math.floor(math.abs(1 - playerCount/expectedPlayerCount) / perMissingApplyStack)
     if stacksToApply <= 0 then
         PrintDebug("Removing/skipping scaling. stacksToApply: " .. stacksToApply)
         creature:RemoveAura(buff)
