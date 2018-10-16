@@ -25,6 +25,8 @@ where FactionHorde in (
                         894, -- Theramore
                         1096, -- Theramore
                         694, -- Wildhammer Clan
+                        1054, -- Wildhammer Clan
+                        1055, -- Wildhammer Clan
                         96, -- Southshore Mayor
                         84, -- Alliance Generic
                         1154, -- Undercity 
@@ -74,6 +76,8 @@ or FactionAlliance in (
                         894, -- Theramore
                         1096, -- Theramore
                         694, -- Wildhammer Clan
+                        1054, -- Wildhammer Clan
+                        1055, -- Wildhammer Clan
                         96, -- Southshore Mayor
                         84, -- Alliance Generic
                         1154, -- Undercity 
@@ -98,7 +102,10 @@ or FactionAlliance in (
                         125, -- Orgrimmar 
                         1074, -- Orgrimmar
                         83 -- Horde Generic
-                      );
+                      )
+or Entry in (
+    13842 -- Frostwolf Ambassador (AV)
+);
                       
 -- Set the faction NPC's that have to be killed for quests to be hostile
 update mangos0.creature_template 
