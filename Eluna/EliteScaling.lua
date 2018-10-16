@@ -33,7 +33,9 @@ local factionBlacklist = {
 }
 
 -- TODO: Change this up ex: for outdoor raid bosses
-local expectedPlayers = 5 
+local expectedPlayerCount = 5
+-- We'll at most scale health down to this player count.
+local maximumHealthScaling = 2
 
 local function OnEnterCombat(event, creature, target)
     local map = creature:GetMap()
@@ -44,9 +46,7 @@ local function OnEnterCombat(event, creature, target)
 
     -- If the target is a pet, get the pet's owner instead
     local owner = target:GetOwner()
-    if owner then 
-        target = owner 
-    end
+    if owner then target = owner end
 
     -- If the unit's not a player...
     if target:GetTypeId() ~= 4 then -- TODO: Add to constants
@@ -74,7 +74,7 @@ local function OnEnterCombat(event, creature, target)
         playerCount = 1
     end
     PrintDebug("Player count based on " .. creature:GetName() .. " target's group: " .. playerCount)
-    AdjustCreature(creature, expectedPlayers, playerCount)
+    AdjustCreature(creature, expectedPlayerCount, playerCount, maximumHealthScaling)
 end
 
 local blacklistedFactions

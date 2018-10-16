@@ -2,7 +2,7 @@ require("Constants")
 require("Scaling")
 
 -- TODO: Confirm these esp. BRD/Strat/Scholo
-local instanceExpectedPlayerCountTable = {
+local instanceExpectedPlayerCount = {
     [RaidMaps.ONYXIAS_LAIR] = 40,
     [RaidMaps.NAXXRAMAS] = 40,
     [RaidMaps.AHNQIRAJ_TEMPLE] = 40,
@@ -32,40 +32,52 @@ local instanceExpectedPlayerCountTable = {
     [DungeonMaps.ZULFARRAK] = 5,
 }
 
+-- For a given expected player count, we'll at most scale health down to this player count.
+local maximumHealthScaling = 
+{
+    [40] = 5,
+    [20] = 5,
+    [10] = 4,
+    [5] = 2,
+}
+
 local function OnAdd(event, creature)
     local map = creature:GetMap()
     local mapId = map:GetMapId()
-    if instanceExpectedPlayerCountTable[mapId] then
+    if instanceExpectedPlayerCount[mapId] then
         local creatures = map:GetData("Creatures") or {}
         -- Using creatures table as a set. True value just means it exists (not nil)
         creatures[creature:GetGUID()] = true
         map:SetData("Creatures", creatures)
         local playerCount = map:GetPlayerCount() or 0
-        AdjustCreature(creature, instanceExpectedPlayerCountTable[mapId], playerCount)
+        local expectedPlayerCount = instanceExpectedPlayerCount[mapId]
+        AdjustCreature(creature, expectedPlayerCount, playerCount, maximumHealthScaling[expectedPlayerCount])
     end
 end
 
 local function OnPlayerEnterLeave(event, map, player)
     local mapId = map:GetMapId()
-    if instanceExpectedPlayerCountTable[mapId] then
+    if instanceExpectedPlayerCount[mapId] then
         local playerCount = map:GetPlayerCount() or 0
-        AdjustMap(map, instanceExpectedPlayerCountTable[mapId], playerCount)
+        local expectedPlayerCount = instanceExpectedPlayerCount[mapId]
+        AdjustMap(map, expectedPlayerCount, playerCount, maximumHealthScaling[expectedPlayerCount])
     end
 end
 
 local function OnEnterCombat(event, creature, target)
     local map = creature:GetMap()
     local mapId = map:GetMapId()
-    if instanceExpectedPlayerCountTable[mapId] then
+    if instanceExpectedPlayerCount[mapId] then
         PrintDebug("Creature entered combat! " .. creature:GetName())
         local playerCount = map:GetPlayerCount() or 0
-        AdjustCreature(creature, instanceExpectedPlayerCountTable[mapId], playerCount)
+        local expectedPlayerCount = instanceExpectedPlayerCount[mapId]
+        AdjustCreature(creature, expectedPlayerCount, playerCount, maximumHealthScaling[expectedPlayerCount])
     end
 end
 
 local instances
 local first = true
-for mapId, _ in pairs(instanceExpectedPlayerCountTable) do
+for mapId, _ in pairs(instanceExpectedPlayerCount) do
     if first then 
         instances = mapId
         first = false
