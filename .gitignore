@@ -329,8 +329,12 @@ ASALocalRun/
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
 
-# Blizzard DBC files
+# Blizzard DBC/MPQ files
 *.dbc
+*.mpq
+
+# CSV files
+*.csv
 
 # WDBX.Editor
 WDBX.Editor/
