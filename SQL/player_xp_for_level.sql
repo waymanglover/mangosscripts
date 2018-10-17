@@ -1,3 +1,4 @@
+-- Increase leveling speed
 UPDATE mangos0.player_xp_for_level (`lvl`, `xp_for_next_level`) 
 VALUES
 (1, 2000),

@@ -1,3 +1,4 @@
+-- Modify prices/levels for training mounts
 UPDATE mangos0.npc_trainer SET spellcost = '9000', reqlevel = '10' WHERE (entry = '3690') and (spell = '33389');
 UPDATE mangos0.npc_trainer SET spellcost = '9000', reqlevel = '10' WHERE (entry = '4732') and (spell = '33389');
 UPDATE mangos0.npc_trainer SET spellcost = '9000', reqlevel = '10' WHERE (entry = '4752') and (spell = '33389');

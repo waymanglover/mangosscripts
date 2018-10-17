@@ -1,3 +1,5 @@
+-- Modify an item to teleport the user to GM Island
+
 require("Constants")
 
 local itemId = 69201

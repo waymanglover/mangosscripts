@@ -1,3 +1,6 @@
+-- Add a chat command for checking whether the target creature is scaled,
+-- and by how much.
+
 require("Constants")
 
 local function OnChat(event, player, msg, Type, lang)

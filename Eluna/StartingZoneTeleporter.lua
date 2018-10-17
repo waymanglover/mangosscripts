@@ -1,4 +1,6 @@
---Based on DynamicTeleporter.lua (https://raw.githubusercontent.com/ElunaLuaEngine/Scripts/master/Custom/Dynamic%20teleporter.lua)
+-- Add an NPC for teleporting between starting zones
+-- Based on DynamicTeleporter.lua (https://raw.githubusercontent.com/ElunaLuaEngine/Scripts/master/Custom/Dynamic%20teleporter.lua)
+-- Must run StartingZoneTeleporterNpc.sql to add the NPC
 require("Constants")
 
 local UnitEntry = 69001

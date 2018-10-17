@@ -1,3 +1,4 @@
+-- Allow characters of either faction to quest/play with whatever faction they want.
 -- Set NPCs assigned to a player faction to be friendly to both factions
 update mangos0.creature_template
 set FactionHorde = 35, FactionAlliance = 35 -- Friendly

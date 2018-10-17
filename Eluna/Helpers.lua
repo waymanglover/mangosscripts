@@ -1,3 +1,5 @@
+-- General helper functions for Eluna coding
+
 local function TableToString(table, indent)
     if not table then return "Nil" end
     if not indent then indent = 0 end

@@ -1,3 +1,5 @@
+-- Scale world elite creature damage/health based on party size
+
 require("Constants")
 require("Scaling")
 

@@ -1,3 +1,5 @@
+-- Automatically add players to a given guild on login
+
 require("Constants")
 
 local guildName = "TestGuild"

@@ -1,3 +1,5 @@
+-- Shared code for scaling creature health/damage
+
 -- Apply a stack of the buff/debuff depending on the percentage of players 
 -- we are below the expected player count.
 -- Ex: Instance expects 10 players, but there's 6 players in the instance

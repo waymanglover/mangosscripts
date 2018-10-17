@@ -1,3 +1,5 @@
+-- Scale dungeon/raid creature damage/health based on party size
+
 require("Constants")
 require("Scaling")
 
