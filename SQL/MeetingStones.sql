@@ -1,5 +1,5 @@
 -- Modify meeting stones to work more like live (summon target to you)
-update gameobject_template
+update mangos0.gameobject_template
 set type = 22,     -- Spellcaster
     data0 = 23598, -- Ritual of Summoning 
                    -- This is the Ritual of Summoning spell used by summoning stones,
