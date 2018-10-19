@@ -77,19 +77,7 @@ local function OnEnterCombat(event, creature, target)
     end
 end
 
-local instances
-local first = true
-for mapId, _ in pairs(instanceExpectedPlayerCount) do
-    if first then 
-        instances = mapId
-        first = false
-    else
-        instances = mapId .. ", " .. instances
-    end
-end
-
-local query = "SELECT DISTINCT id FROM creature WHERE map IN (" .. instances .. ")"
-PrintDebug("Instance creature query: " .. query)
+local query = "SELECT DISTINCT id FROM instance_creatures"
 local Q = WorldDBQuery(query)
 if Q then
     repeat

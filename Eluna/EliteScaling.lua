@@ -3,38 +3,25 @@
 require("Constants")
 require("Scaling")
 
--- Do not scale NPCs in these factions
-local factionBlacklist = {
-    [35] = true, -- Friendly
-    [1514] = true, -- Silverwing Sentinels (WSG A)
-    [1515] = true, -- Warsong Outriders (WSG H)
-    [1577] = true, -- The League of Arathor (AB A)
-    [1599] = true, 
-    [412] = true, -- The Defilers (AB H)
-    [1598] = true, 
-    [1216] = true, -- Stormpike Guard (AV A)
-    [1334] = true, 
-    [1214] = true, -- Frostwolf Clan (AV H)
-    [1335] = true, 
-    [1194] = true, -- Battleground Neutral
-    [11102] = true, -- Argent Dawn
-    [1625] = true, 
-    [794] = true, 
-    [994] = true, -- Cenarion Circle
-    [635] = true, 
-    [1254] = true, 
-    [1574] = true, -- Zandalar Tribe
-    [695] = true, -- Hydraxian Waterlords
-    [471] = true, -- Ravenholdt
-    [474] = true, -- Gadgetzan
-    [69] = true, -- Ratchet
-    [114] = true, -- Treasure
-    [1555] = true, -- Darkmoon Faire
-    [250] = true, -- Escortee
-    [495] = true, 
+-- Special handling for world boss scaling
+local overrideExpectedPlayerCount = {
+    [2723] = 40, -- Lord Kazzak
+    [52349] = 40, -- Azuregos
+    [50012] = 40, -- Emeriss
+    [52350] = 40, -- Lethon
+    [32343] = 40, -- Ysondre
+    [4256] = 40, -- Taerar
 }
 
--- TODO: Change this up ex: for outdoor raid bosses
+local overrideMaximumHealthScaling = {
+    [2723] = 5, -- Lord Kazzak
+    [52349] = 5, -- Azuregos
+    [50012] = 5, -- Emeriss
+    [52350] = 5, -- Lethon
+    [32343] = 5, -- Ysondre
+    [4256] = 5, -- Taerar
+}
+
 local expectedPlayerCount = 5
 -- We'll at most scale health down to this player count.
 local maximumHealthScaling = 2
@@ -56,7 +43,7 @@ local function OnEnterCombat(event, creature, target)
         return
     end
 
-    PrintDebug(creature:GetName() .. " entered combat!")
+    PrintDebug(creature:GetName() .. " entered combat with a player!")
     local playerCount = 0
     local group = target:GetGroup()
     if group then
@@ -76,27 +63,16 @@ local function OnEnterCombat(event, creature, target)
         playerCount = 1
     end
     PrintDebug("Player count based on " .. creature:GetName() .. " target's group: " .. playerCount)
-    AdjustCreature(creature, expectedPlayerCount, playerCount, maximumHealthScaling)
-end
 
-local blacklistedFactions
-local first = true
-for factionId, _ in pairs(factionBlacklist) do
-    if first then 
-        blacklistedFactions = factionId
-        first = false
+    local creatureGuid = creature:GetGUIDLow()
+    if overrideExpectedPlayerCount[creatureGuid] then
+        AdjustCreature(creature, overrideExpectedPlayerCount[creatureGuid], playerCount, overrideMaximumHealthScaling[creatureGuid])
     else
-        blacklistedFactions = factionId .. ", " .. blacklistedFactions
+        AdjustCreature(creature, expectedPlayerCount, playerCount, maximumHealthScaling)
     end
 end
 
-local query = "select distinct c.id from mangos0.creature as c " ..
-              "join mangos0.creature_template as ct " ..
-              "on c.Id = ct.Entry " ..
-              "where `rank` between 1 and 3 " .. -- TODO: Add to constants
-              "and map in (" .. WorldMaps.EASTERN_KINGDOMS .. "," .. WorldMaps.KALIMDOR .. ") " ..
-              "and FactionAlliance not in (" .. blacklistedFactions .. ")"
-PrintDebug("Elite creature query: " .. query)
+local query = "SELECT DISTINCT id FROM world_elite_creatures"
 local Q = WorldDBQuery(query)
 if Q then
     repeat
