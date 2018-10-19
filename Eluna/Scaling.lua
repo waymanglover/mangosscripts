@@ -33,7 +33,7 @@ local function AdjustDamage(creature, expectedPlayerCount, playerCount)
     local mapId = map:GetMapId()
     local stacksToApply = math.floor(math.abs(1 - playerCount/expectedPlayerCount) / perMissingApplyStack)
     if stacksToApply <= 0 then
-        PrintDebug("Removing/skipping scaling. stacksToApply: " .. stacksToApply)
+        PrintDebug("Removing/skipping scaling for " .. creature:GetName() .. ". stacksToApply: " .. stacksToApply)
         creature:RemoveAura(buff)
         creature:RemoveAura(debuff)
         return 
